@@ -1,0 +1,185 @@
+local INIL = {}
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+-- اللاعب المحلي
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+
+-- إنشاء نافذة
+function INIL:CreateWindow(options)
+    local screenGui = Instance.new("ScreenGui")
+    local mainFrame = Instance.new("Frame")
+    local titleBar = Instance.new("Frame")
+    local titleLabel = Instance.new("TextLabel")
+    local closeButton = Instance.new("TextButton")
+
+    -- إعداد الـ GUI
+    screenGui.Name = options.Name or "INIL_UI"
+    screenGui.Parent = game:GetService("CoreGui")
+
+    -- الإطار الرئيسي
+    mainFrame.Name = "MainFrame"
+    mainFrame.Parent = screenGui
+    mainFrame.BackgroundColor3 = options.BackgroundColor or Color3.fromRGB(30, 30, 30)
+    mainFrame.Size = UDim2.new(0, 450, 0, 300)
+    mainFrame.Position = UDim2.new(0.5, -225, 0.5, -150)
+    mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+
+    -- الحواف المستديرة للإطار
+    local mainCorner = Instance.new("UICorner", mainFrame)
+    mainCorner.CornerRadius = UDim.new(0, 10)
+
+    -- شريط العنوان
+    titleBar.Name = "TitleBar"
+    titleBar.Parent = mainFrame
+    titleBar.Size = UDim2.new(1, 0, 0, 40)
+    titleBar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    titleBar.BorderSizePixel = 0
+
+    -- النص الخاص بشريط العنوان
+    titleLabel.Name = "TitleLabel"
+    titleLabel.Parent = titleBar
+    titleLabel.Text = options.Title or "INIL Window"
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 16
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.Size = UDim2.new(1, -40, 1, 0)
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Position = UDim2.new(0, 10, 0, 0)
+
+    -- زر الإغلاق
+    closeButton.Name = "CloseButton"
+    closeButton.Parent = titleBar
+    closeButton.Text = "X"
+    closeButton.Font = Enum.Font.GothamBold
+    closeButton.TextSize = 16
+    closeButton.TextColor3 = Color3.fromRGB(255, 85, 85)
+    closeButton.BackgroundTransparency = 1
+    closeButton.Size = UDim2.new(0, 40, 1, 0)
+    closeButton.Position = UDim2.new(1, -40, 0, 0)
+
+    -- إغلاق النافذة عند الضغط على زر الإغلاق
+    closeButton.MouseButton1Click:Connect(function()
+        screenGui:Destroy()
+    end)
+
+    -- تمكين السحب للنافذة
+    self:EnableDrag(mainFrame, titleBar)
+
+    return mainFrame
+end
+
+-- تمكين السحب
+function INIL:EnableDrag(frame, dragHandle)
+    local dragging, dragStart, startPos
+
+    dragHandle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+        end
+    end)
+
+    dragHandle.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+end
+
+-- إنشاء زر
+function INIL:CreateButton(parent, options, callback)
+    local button = Instance.new("TextButton")
+
+    button.Name = options.Name or "Button"
+    button.Parent = parent
+    button.Text = options.Text or "Click Me"
+    button.Font = Enum.Font.Gotham
+    button.TextSize = 14
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.BackgroundColor3 = options.BackgroundColor or Color3.fromRGB(45, 45, 45)
+    button.Size = options.Size or UDim2.new(0, 100, 0, 40)
+
+    -- الحواف المستديرة
+    local buttonCorner = Instance.new("UICorner", button)
+    buttonCorner.CornerRadius = UDim.new(0, 8)
+
+    -- تأثير الضغط
+    button.MouseButton1Click:Connect(function()
+        if callback then
+            callback()
+        end
+    end)
+
+    return button
+end
+
+-- إنشاء شريط التمرير (Slider)
+function INIL:CreateSlider(parent, options, callback)
+    local sliderFrame = Instance.new("Frame")
+    local sliderBar = Instance.new("Frame")
+    local sliderHandle = Instance.new("Frame")
+    local valueLabel = Instance.new("TextLabel")
+
+    sliderFrame.Name = options.Name or "Slider"
+    sliderFrame.Parent = parent
+    sliderFrame.Size = UDim2.new(0, 300, 0, 20)
+    sliderFrame.BackgroundTransparency = 1
+
+    sliderBar.Parent = sliderFrame
+    sliderBar.Size = UDim2.new(1, 0, 0, 6)
+    sliderBar.Position = UDim2.new(0, 0, 0.5, -3)
+    sliderBar.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+
+    sliderHandle.Parent = sliderBar
+    sliderHandle.Size = UDim2.new(0, 10, 1.5, 0)
+    sliderHandle.Position = UDim2.new(0, 0, 0, -3)
+    sliderHandle.BackgroundColor3 = Color3.fromRGB(120, 120, 255)
+
+    valueLabel.Parent = sliderFrame
+    valueLabel.Size = UDim2.new(0, 50, 1, 0)
+    valueLabel.Position = UDim2.new(1, 10, 0, 0)
+    valueLabel.Text = options.Default or "0"
+    valueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    valueLabel.TextSize = 14
+    valueLabel.BackgroundTransparency = 1
+
+    local min, max = options.Min or 0, options.Max or 100
+    local function updateValue(position)
+        local scale = math.clamp(position.X / sliderBar.AbsoluteSize.X, 0, 1)
+        local value = math.floor((scale * (max - min)) + min)
+        sliderHandle.Position = UDim2.new(scale, -5, 0, -3)
+        valueLabel.Text = tostring(value)
+        if callback then
+            callback(value)
+        end
+    end
+
+    sliderBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            updateValue(Vector2.new(mouse.X - sliderBar.AbsolutePosition.X, 0))
+            mouse.Move:Connect(function()
+                updateValue(Vector2.new(mouse.X - sliderBar.AbsolutePosition.X, 0))
+            end)
+        end
+    end)
+
+    return sliderFrame
+end
+
+return INIL
